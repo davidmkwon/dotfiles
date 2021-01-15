@@ -1,0 +1,14 @@
+- search and replace
+:%s/foo/bar/g -> replace every occurence of 'foo' with 'bar'
+
+- paste in insert mode
+CNTRL-r + "
+
+- alternative for escape
+CNTRL-c
+
+- reload the currenf ile
+:e
+
+- insert something at the beginning of multiple lines (i.e comment)
+CNTRL-v, I, (type), esc
