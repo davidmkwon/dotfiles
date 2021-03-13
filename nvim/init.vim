@@ -23,6 +23,7 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " file finder
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+"Plug 'ctrlpvim/ctrlp.vim'
 
 call plug#end()
 
@@ -67,7 +68,7 @@ highlight ColorColumn ctermfg=grey
 " for file exploring
 let g:netrw_banner = 0
 let g:netrw_liststyle = 3
-let g:netrw_browse_split = 4
+"let g:netrw_browse_split = 4
 let g:netrw_winsize = 25
 
 " buffer stuff
@@ -75,7 +76,15 @@ let g:netrw_winsize = 25
 :set nobackup
 :set nowritebackup
 :let g:airline#extensions#tabline#enabled = 1
-:let g:airline#extensions#tabline#fnamemod = ':t'
+":let g:airline#extensions#tabline#fnamemod = ':t'
+:let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
+:se nosol
+":let g:fzf_preview_window = ''
+":let g:fzf_layout = { 'down': '~15%'}
+if v:version >= 700
+  au BufLeave * let b:winview = winsaveview()
+  au BufEnter * if(exists('b:winview')) | call winrestview(b:winview) | endif
+endif
 
 
 " ************************************************
@@ -113,17 +122,28 @@ let g:go_fmt_command = 'goimports'
 ":nnoremap <leader>l :wincmd l<CR>
 
 " navigate tabs
-:nnoremap <C-h> :tabprevious<CR>
-:nnoremap <C-l> :tabnext<CR>
+:nnoremap <Leader>h :tabprevious<CR>
+:nnoremap <Leader>l :tabnext<CR>
+:nnoremap <Leader>bs :ls<CR>
 :nnoremap <C-j> :set hlsearch! hlsearch?<CR>
 
 " nagivate buffers
-:nnoremap <Leader>h :bp<CR>
-:nnoremap <Leader>l :bn<CR>
-:nnoremap <Leader>bs :ls<CR>
+":nnoremap <Leader>h :bp<CR>
+":nnoremap <Leader>l :bn<CR>
+":nnoremap <Leader>bs :ls<CR>
+:nnoremap <C-h> :bp<CR>
+:nnoremap <C-l> :bn<CR>
+:nnoremap <leader>bd :bp\|bd #<CR>
 
 " show netrw on side
 :nnoremap <leader>fv :wincmd v<bar> :Ex <bar> :vertical resize 30<CR>
+
+" file finder
+:nnoremap <leader>p :FZF<CR>
+"command! -nargs=+ -complete=file -bar AgCommand grep! <args>|cw
+"command! -nargs=+ -complete=file -bar Grep grep! <args>|cw
+command! -nargs=+ -complete=file -bar Agh :Ag <args>|cw
+:nnoremap <leader>; :Agh<space>
 
 " function that changes how much cntrl-u and cntrl-d scroll by
 " currently set to 25% of screen
