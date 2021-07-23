@@ -6,11 +6,10 @@
 " ************************************************
 
 call plug#begin('~/.local/share/nvim/plugged')
-
-" language stuff
-Plug 'fatih/vim-go', { 'tag': 'v1.22', 'do' : ':GoUpdateBinaries'}
-Plug 'rust-lang/rust.vim'
-Plug 'sheerun/vim-polyglot'
+"
+"" language stuff
+"Plug 'rust-lang/rust.vim'
+"Plug 'sheerun/vim-polyglot'
 
 " color theme stuff
 Plug 'vim-airline/vim-airline'
@@ -23,8 +22,11 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " file finder
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-"Plug 'ctrlpvim/ctrlp.vim'
+""Plug 'ctrlpvim/ctrlp.vim'
+"
 
+" NERDTree
+Plug 'preservim/nerdtree'
 call plug#end()
 
 
@@ -36,25 +38,35 @@ call plug#end()
 :set noerrorbells
 
 " colorscheme
+" settings for koehler colorscheme:
+"
+":colo koehler
+":hi Pmenu ctermbg=245 " grey color
+":hi Type ctermfg=2    " green color
+
 :colorscheme gruvbox
 :set background=dark
 :highlight LineNr ctermfg=grey
 ":highlight Comment ctermfg=green
 
+" cursorline
+:set cursorline
+:hi CursorLine cterm=NONE ctermbg=237
+
 " status bar
-let g:airline_theme='cool'
+let g:airline_theme='distinguished'
 
 " line limit
-set colorcolumn=100
+set colorcolumn=90
 highlight ColorColumn ctermfg=grey
 
 " formatting settings
 :set guicursor=
 :set number
 :set relativenumber
-:set tabstop=4
-:set softtabstop=4
-:set shiftwidth=4
+:set tabstop=2
+:set softtabstop=2
+:set shiftwidth=2
 :set expandtab
 :set smartindent
 :set noswapfile
@@ -63,7 +75,10 @@ highlight ColorColumn ctermfg=grey
 :set incsearch
 :set encoding=utf-8
 :set mouse=a
-":set textwidth=80
+:set textwidth=90
+" you need this because the annoying af ftplugins override the
+" formatoptions settings
+:au BufWinEnter * set fo+=t
 
 " for file exploring
 let g:netrw_banner = 0
@@ -71,49 +86,74 @@ let g:netrw_liststyle = 3
 "let g:netrw_browse_split = 4
 let g:netrw_winsize = 25
 
+" Start NERDTree and put the cursor back in the other window.
+" autocmd VimEnter * NERDTree | wincmd p
+
+
 " buffer stuff
 :set hidden
 :set nobackup
 :set nowritebackup
-:let g:airline#extensions#tabline#enabled = 1
+":let g:airline#extensions#tabline#enabled = 1
 ":let g:airline#extensions#tabline#fnamemod = ':t'
-:let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
+":let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
 :se nosol
-":let g:fzf_preview_window = ''
-":let g:fzf_layout = { 'down': '~15%'}
-if v:version >= 700
-  au BufLeave * let b:winview = winsaveview()
-  au BufEnter * if(exists('b:winview')) | call winrestview(b:winview) | endif
-endif
 
+" fzf window stuff
+"let g:fzf_preview_window = ['right:50%', 'ctrl-/']
+:let g:fzf_layout = { 'down': '~30%'}
+
+" Save current view settings on a per-window, per-buffer basis.
+function! AutoSaveWinView()
+    if !exists("w:SavedBufView")
+        let w:SavedBufView = {}
+    endif
+    let w:SavedBufView[bufnr("%")] = winsaveview()
+endfunction
+
+" Restore current view settings.
+function! AutoRestoreWinView()
+    let buf = bufnr("%")
+    if exists("w:SavedBufView") && has_key(w:SavedBufView, buf)
+        let v = winsaveview()
+        let atStartOfFile = v.lnum == 1 && v.col == 0
+        if atStartOfFile && !&diff
+            call winrestview(w:SavedBufView[buf])
+        endif
+        unlet w:SavedBufView[buf]
+    endif
+endfunction
+
+" When switching buffers, preserve window view.
+if v:version >= 700
+    autocmd BufLeave * call AutoSaveWinView()
+    autocmd BufEnter * call AutoRestoreWinView()
+endif
 
 " ************************************************
 " LANGUAGE SPECIFIC CONFIGS
 " ************************************************
 
 " rust.vim stuff
-let g:rustfmt_autosave = 1
+"let g:rustfmt_autosave = 1
 
 " vim polygot for python
-let g:python_highlight_space_errors=0
-
-" make goimports be called when you save file
-let g:go_fmt_command = 'goimports'
-"let g:go_fmt_command = 'gopls'
-"let g:go_imports_autosave = 1
-"let g:go_metalinter_command = 'gopls'
-"let g:go_gopls_staticcheck = 1
-
+"let g:python_highlight_space_errors=0
 
 " ************************************************
 " REMAPS
 " ************************************************
 " cntrl-c for exit
 :imap <C-c> <Esc>
+:imap <C-[> <Esc>
 
 " set leader key to cntrl f
 :nnoremap <C-f> <C-c>
 :let mapleader = "\<C-f>"
+
+" set leader-q to close buffer
+":nnoremap <Leader>q :bd<CR>
+:nnoremap <leader>q :bp\|bd #<CR>
 
 " navigate windows with leader
 ":nnoremap <leader>h :wincmd h<CR>
@@ -122,10 +162,10 @@ let g:go_fmt_command = 'goimports'
 ":nnoremap <leader>l :wincmd l<CR>
 
 " navigate tabs
-:nnoremap <Leader>h :tabprevious<CR>
-:nnoremap <Leader>l :tabnext<CR>
-:nnoremap <Leader>bs :ls<CR>
-:nnoremap <C-j> :set hlsearch! hlsearch?<CR>
+" :nnoremap <Leader>h :tabprevious<CR>
+" :nnoremap <Leader>l :tabnext<CR>
+" :nnoremap <Leader>bs :ls<CR>
+" :nnoremap <C-j> :set hlsearch! hlsearch?<CR>
 
 " nagivate buffers
 ":nnoremap <Leader>h :bp<CR>
@@ -133,33 +173,37 @@ let g:go_fmt_command = 'goimports'
 ":nnoremap <Leader>bs :ls<CR>
 :nnoremap <C-h> :bp<CR>
 :nnoremap <C-l> :bn<CR>
-:nnoremap <leader>bd :bp\|bd #<CR>
+":nnoremap <leader>bd :bp\|bd #<CR>
 
 " show netrw on side
-:nnoremap <leader>fv :wincmd v<bar> :Ex <bar> :vertical resize 30<CR>
+":nnoremap <leader>fv :wincmd v<bar> :Ex <bar> :vertical resize 30<CR>
 
-" file finder
-:nnoremap <leader>p :FZF<CR>
-"command! -nargs=+ -complete=file -bar AgCommand grep! <args>|cw
+" show NERDTree remap
+:nnoremap <Leader>f :NERDTree<CR>
+
+" FZF command `:Files` remap
+"command! -nargs=+ -complete=file -bar FindFile :Files <args>|cw
+:nnoremap <leader>p :Files<space>
+
+" FZF command show buffers
+:nnoremap <leader>b :Buffers<CR>
+
+" file finder--NOTE: this requires ripgrep (aka `rg` command), installed via
+"
+"command! -nargs=+ -complete=file -bar RgCommand grep! <args>|cw
 "command! -nargs=+ -complete=file -bar Grep grep! <args>|cw
-command! -nargs=+ -complete=file -bar Agh :Ag <args>|cw
-:nnoremap <leader>; :Agh<space>
+command! -nargs=+ -complete=file -bar RipGrep :Rg <args>|cw
+:nnoremap <leader>; :RipGrep<space>
 
-" function that changes how much cntrl-u and cntrl-d scroll by
-" currently set to 25% of screen
-function! ScrollQuarter(move)
-    let height=winheight(0)
-
-    if a:move == 'up'
-        let key="\<C-Y>"
-    else
-        let key="\<C-E>"
-    endif
-
-    "execute 'normal! ' . height/4 . key
-    execute 'normal! ' . 12 . key
+" coc nvim remaps
+:nnoremap <leader>e :<C-u>CocList diagnostics<cr>
+:nnoremap <leader>d :call <SID>show_documentation()<CR>
+function! s:show_documentation()
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  elseif (coc#rpc#ready())
+    call CocActionAsync('doHover')
+  else
+    execute '!' . &keywordprg . " " . expand('<cword>')
+  endif
 endfunction
-" TODO: before setting these remaps, make the behavior for when you reach
-" end of the buffer better
-"nnoremap <C-u> :call ScrollQuarter('up')<CR>
-"nnoremap <C-d> :call ScrollQuarter('down')<CR>
