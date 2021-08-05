@@ -1,5 +1,9 @@
 " David Kwon's vimrc
 
+" TODO: change this so that all language specific stuff are loaded from respective files
+" for example, <leader>f uses merlin if ocaml file, uses cdoc if cpp file, etc.
+"
+" ^^^^do the same for indenting
 
 " ************************************************
 " PLUGINS
@@ -44,8 +48,8 @@ call plug#end()
 ":hi Pmenu ctermbg=245 " grey color
 ":hi Type ctermfg=2    " green color
 
-:colorscheme gruvbox
 :set background=dark
+:colorscheme gruvbox
 :highlight LineNr ctermfg=grey
 ":highlight Comment ctermfg=green
 
@@ -151,8 +155,9 @@ endif
 :nnoremap <C-f> <C-c>
 :let mapleader = "\<C-f>"
 
-" set leader-q to close buffer
-":nnoremap <Leader>q :bd<CR>
+" closes buffer (and the current window it's in if it's not the main window)
+":nnoremap <Leader>qw :bd<CR>
+" closes buffer and keeps window open
 :nnoremap <leader>q :bp\|bd #<CR>
 
 " navigate windows with leader
@@ -165,7 +170,7 @@ endif
 " :nnoremap <Leader>h :tabprevious<CR>
 " :nnoremap <Leader>l :tabnext<CR>
 " :nnoremap <Leader>bs :ls<CR>
-" :nnoremap <C-j> :set hlsearch! hlsearch?<CR>
+:nnoremap <C-j> :set hlsearch! hlsearch?<CR>
 
 " nagivate buffers
 ":nnoremap <Leader>h :bp<CR>
@@ -183,7 +188,8 @@ endif
 
 " FZF command `:Files` remap
 "command! -nargs=+ -complete=file -bar FindFile :Files <args>|cw
-:nnoremap <leader>p :Files<space>
+":nnoremap <leader>p :Files<space>
+:nnoremap <leader>p :Files<CR>
 
 " FZF command show buffers
 :nnoremap <leader>b :Buffers<CR>
