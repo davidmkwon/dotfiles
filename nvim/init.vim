@@ -1,5 +1,7 @@
 " David Kwon's vimrc
 
+" sick rust config in this video (init.vim is in comments)
+" https://www.youtube.com/watch?v=16sU1q8OeeI
 
 " ************************************************
 " PLUGINS
@@ -12,6 +14,7 @@ Plug 'rust-lang/rust.vim'
 Plug 'vim-syntastic/syntastic', { 'for': 'ocaml' }
 
 " color theme stuff
+Plug 'vim-scripts/Zenburn'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'morhetz/gruvbox'
@@ -33,12 +36,14 @@ call plug#end()
 " ************************************************
 :syntax on
 :filetype on
+:filetype plugin on
 :filetype plugin indent on
 :set noerrorbells
 
 " colorscheme
-:colorscheme gruvbox
 :set background=dark
+:let g:gruvbox_contrast_light='medium'
+:colorscheme gruvbox
 :highlight LineNr ctermfg=grey
 
 " cursorline
@@ -70,6 +75,14 @@ highlight ColorColumn ctermfg=grey
 :set mouse=a
 :set cursorline
 
+" add relative movements to the jump history so you can Ctrl-O/I them
+"noremap <expr> k (v:count > 5 ? "m'" . v:count : "") . 'k'
+"noremap <expr> j (v:count > 5 ? "m'" . v:count : "") . 'j'
+
+" moving text in visual mode
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
 " buffer stuff
 :set hidden
 :set nobackup
@@ -80,8 +93,11 @@ highlight ColorColumn ctermfg=grey
 :se nosol
 
 " fzf window stuff
-"let g:fzf_preview_window = ['right:50%', 'ctrl-/']
-:let g:fzf_layout = { 'down': '~30%'}
+let g:fzf_preview_window = ['right:50%', 'ctrl-/']
+":let g:fzf_layout = { 'down': '~30%'}
+"let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
+"let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6, 'relative': v:true, 'yoffset': 1.0 } }
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.4, 'yoffset': 1.0 } }
 
 " Start NERDTree and put the cursor back in the other window.
 " autocmd VimEnter * NERDTree | wincmd p
@@ -163,7 +179,7 @@ execute "helptags " . substitute(system('opam config var share'),'\n$','','''') 
 ":nnoremap <leader>fv :wincmd v<bar> :Ex <bar> :vertical resize 30<CR>
 
 " show NERDTree remap
-:nnoremap <Leader>f :NERDTree<CR>
+:nnoremap <Leader>f :NERDTreeToggle<CR>
 
 " file finder
 " FZF command `:Files` remap
@@ -176,7 +192,7 @@ execute "helptags " . substitute(system('opam config var share'),'\n$','','''') 
 
 "command! -nargs=+ -complete=file -bar AgCommand grep! <args>|cw
 "command! -nargs=+ -complete=file -bar Grep grep! <args>|cw
-command! -nargs=+ -complete=file -bar Agh :Ag <args>|cw
+command! -nargs=+ -complete=file -bar Agh :Ag <args>
 :nnoremap <leader>; :Agh<space>
 
 " remap for omni
@@ -202,3 +218,7 @@ function! s:show_documentation()
     execute '!' . &keywordprg . " " . expand('<cword>')
   endif
 endfunction
+
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
