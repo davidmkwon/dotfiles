@@ -291,7 +291,8 @@ require('lspconfig').clangd.setup{
 -- make the diagnostic messages not inlined
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
     vim.lsp.diagnostic.on_publish_diagnostics, {
-        virtual_text = false
+        virtual_text = false,
+        underline = true
     }
 )
 
@@ -317,12 +318,12 @@ EOF
 autocmd CompleteDone * pclose
 "autocmd CursorHold * lua vim.lsp.diagnostic.show_position_diagnostics()
 "nnoremap <leader>e :lua vim.lsp.diagnostic.show_entire_diagnostic()<CR>
-autocmd CursorHold * lua require('echo-diagnostics').echo_line_diagnostic()
-nnoremap <leader>e :lua require('echo-diagnostics').echo_entire_diagnostic()<CR>
+"autocmd CursorHold * lua require('echo-diagnostics').echo_line_diagnostic()
+autocmd CursorHold * lua vim.diagnostic.open_float(nil, { scope = "line" })
+"nnoremap <leader>e :lua vim.diagnostic.open_float(nil, { scope = "line" })<CR>
+"nnoremap <leader>e :lua require('echo-diagnostics').echo_entire_diagnostic()<CR>
 set updatetime=300
 set signcolumn=yes
-
-
 
 
 
