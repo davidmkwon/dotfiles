@@ -16,7 +16,6 @@ Plug 'morhetz/gruvbox'
 " language stuff
 Plug 'fatih/vim-go', { 'tag': 'v1.22', 'do' : ':GoUpdateBinaries'}
 Plug 'rust-lang/rust.vim'
-Plug 'vim-syntastic/syntastic', { 'for': 'ocaml' }
 
 " language server stuff
 "Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -67,17 +66,17 @@ let g:airline_symbols = {}
 let g:airline_symbols.colnr = ' '
 
 " line limit
-set textwidth=90
-set colorcolumn=90
+" set textwidth=90
+" set colorcolumn=90
 highlight ColorColumn ctermfg=grey
 
 " formatting settings
 :set guicursor=
 :set number
 :set relativenumber
-:set tabstop=2
-:set softtabstop=2
-:set shiftwidth=2
+:set tabstop=4
+:set softtabstop=4
+:set shiftwidth=4
 :set expandtab
 :set smartindent
 :set noswapfile
@@ -107,9 +106,6 @@ vnoremap K :m '<-2<CR>gv=gv
 
 " fzf window stuff
 let g:fzf_preview_window = ['right:50%', 'ctrl-/']
-":let g:fzf_layout = { 'down': '~30%'}
-"let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
-"let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6, 'relative': v:true, 'yoffset': 1.0 } }
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.4, 'yoffset': 1.0 } }
 
 " Save current view settings on a per-window, per-buffer basis.
@@ -143,12 +139,6 @@ endif
 " LANGUAGE SPECIFIC CONFIGS
 " ************************************************
 
-" ocaml stuff
-let g:opamshare = substitute(system('opam config var share'), '\n$', '', '''')
-set rtp+=~/.config/ocp-indent-vim
-execute "set rtp+=" . g:opamshare . "/merlin/vim"
-execute "helptags " . substitute(system('opam config var share'),'\n$','','''') .  "/merlin/vim/doc"
-
 " ************************************************
 " REMAPS
 " ************************************************
@@ -156,7 +146,8 @@ execute "helptags " . substitute(system('opam config var share'),'\n$','','''') 
 :imap <C-c> <Esc>
 
 " set leader key to cntrl f
-:nnoremap <C-f> <C-c>
+"BRUH THIS ONE LINE BELOW LITERALLY CAUSED ME 2 HOURS OF PAIN
+":nnoremap <C-f> <C-c>
 :let mapleader = "\<C-f>"
 
 " navigate windows with leader
@@ -166,15 +157,9 @@ execute "helptags " . substitute(system('opam config var share'),'\n$','','''') 
 :nnoremap <C-j> :set hlsearch! hlsearch?<CR>
 
 " nagivate buffers
-":nnoremap <Leader>h :bp<CR>
-":nnoremap <Leader>l :bn<CR>
-":nnoremap <Leader>bs :ls<CR>
 :nnoremap <C-h> :bp<CR>
 :nnoremap <C-l> :bn<CR>
-":nnoremap <leader>bd :bp\|bd #<CR>
 
-" closes buffer (and the current window it's in if it's not the main window)
-":nnoremap <Leader>qw :bd<CR>
 " closes buffer and keeps window open
 :nnoremap <leader>q :bp\|bd #<CR>
 
@@ -188,9 +173,6 @@ let NERDTreeShowLineNumbers=1
 autocmd FileType nerdtree setlocal relativenumber
 
 " file finder
-" FZF command `:Files` remap
-"command! -nargs=+ -complete=file -bar FindFile :Files <args>|cw
-":nnoremap <leader>p :Files<space>
 :nnoremap <leader>p :Files<CR>
 
 " FZF command show buffers
@@ -205,6 +187,7 @@ autocmd FileType nerdtree setlocal relativenumber
 :inoremap <leader><C-h> <C-X><C-O>
 
 " lsp-config stuff
+
 lua << EOF
 local cmp = require'cmp'
 local lspconfig = require'lspconfig'
@@ -219,6 +202,8 @@ cmp.setup({
   mapping = {
     -- Tab immediately completes. C-n/C-p to select.
     ['<Tab>'] = cmp.mapping.confirm({ select = true }),
+    ['<C-n>'] = cmp.mapping(cmp.mapping.select_next_item(), {'i','c'}),
+    ['<C-p>'] = cmp.mapping(cmp.mapping.select_prev_item(), {'i','c'}),
   },
   sources = cmp.config.sources({
     -- TODO: currently snippets from lsp end up getting prioritized -- stop that!
@@ -261,7 +246,7 @@ end
 
 -- rustanalyzer specific stuff
 require('rust-tools').setup({})
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 lspconfig.rust_analyzer.setup {
   on_attach = on_attach,
   flags = {
@@ -282,11 +267,28 @@ lspconfig.rust_analyzer.setup {
   capabilities = capabilities,
 }
 
--- clangd stuff
-require('lspconfig').clangd.setup{
-  -- this makes the server not start right away?
-  autostart = false,
+-- clangd for c/cpp
+require('lspconfig').clangd.setup {
+  on_attach = on_attach,
+  cmd = {
+    "clangd",
+    "--background-index",
+    "--pch-storage=memory",
+    "--clang-tidy",
+    "--suggest-missing-includes",
+    "--all-scopes-completion",
+    "--pretty",
+    "--header-insertion=never",
+    "-j=4",
+    --"--inlay-hints",
+    "--header-insertion-decorators",
+  },
+  filetypes = {"cpp", "objc", "objcpp"},
+  -- root_dir = utils.root_pattern("compile_commands.json", "compile_flags.txt", ".git")
+  init_option = { fallbackFlags = {  "-std=c++2a"  } }
 }
+
+-- require'lspconfig'.pyright.setup{}
 
 -- make the diagnostic messages not inlined
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
@@ -295,16 +297,6 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
         underline = true
     }
 )
-
--- better diagnostic view
---require('trouble').setup {
---  position = "bottom",
---  icons = false
---}
--- remap to open/close this diagnostic view
---vim.api.nvim_set_keymap("n", "<leader>e", "<cmd>TroubleToggle<cr>",
---  { silent = true, noremap = true }
---)
 
 -- have diagonistics show up on hover and
 ed = require("echo-diagnostics")
@@ -319,32 +311,8 @@ autocmd CompleteDone * pclose
 "autocmd CursorHold * lua vim.lsp.diagnostic.show_position_diagnostics()
 "nnoremap <leader>e :lua vim.lsp.diagnostic.show_entire_diagnostic()<CR>
 "autocmd CursorHold * lua require('echo-diagnostics').echo_line_diagnostic()
-autocmd CursorHold * lua vim.diagnostic.open_float(nil, { scope = "line" })
-"nnoremap <leader>e :lua vim.diagnostic.open_float(nil, { scope = "line" })<CR>
+"autocmd CursorHold * lua vim.diagnostic.open_float(nil, { scope = "line" })
+nnoremap <leader>e :lua vim.diagnostic.open_float(nil, { scope = "line" })<CR>
 "nnoremap <leader>e :lua require('echo-diagnostics').echo_entire_diagnostic()<CR>
 set updatetime=300
 set signcolumn=yes
-
-
-
-" coc nvim show documentation in new window
-"nnoremap <silent> K :call <SID>show_documentation()<CR>
-" Use K to show documentation in preview window.
-"nnoremap <silent> K :call <SID>show_documentation()<CR>
-
-" coc nvim remaps
-":nnoremap <leader>e :<C-u>CocList diagnostics<cr>
-":nnoremap <leader>d :call <SID>show_documentation()<CR>
-"function! s:show_documentation()
-"  if (index(['vim','help'], &filetype) >= 0)
-"    execute 'h '.expand('<cword>')
-"  elseif (coc#rpc#ready())
-"    call CocActionAsync('doHover')
-"  else
-"    execute '!' . &keywordprg . " " . expand('<cword>')
-"  endif
-"endfunction
-"
-"nmap <silent> gd <Plug>(coc-definition)
-"nmap <silent> gi <Plug>(coc-implementation)
-"nmap <silent> gr <Plug>(coc-references)
