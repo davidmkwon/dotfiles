@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
+# LINUX ONLY. Intended for Datadog workspaces (Debian/Ubuntu).
 # Runs on workspace creation after this directory is copied into the workspace.
 # Installs developer tooling and symlinks dotfiles into $HOME.
+# Do not run this on macOS — use Homebrew separately to bootstrap a new Mac.
 
 set -euo pipefail
 
