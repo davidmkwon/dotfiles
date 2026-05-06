@@ -11,24 +11,39 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 log() { printf '[install.sh] %s\n' "$*"; }
 
 # ---------------------------------------------------------------------------
-# Developer tooling
+# Base packages via apt (build deps + tools brew doesn't need to manage)
 # ---------------------------------------------------------------------------
 if command -v apt-get >/dev/null 2>&1; then
-    log "Installing apt packages"
+    log "Installing base apt packages"
     sudo apt-get update -y
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        neovim \
-        ripgrep \
-        fzf \
         tmux \
         zsh \
         git \
         curl \
         jq \
-        build-essential
+        build-essential \
+        procps \
+        file
 else
-    log "apt-get not found; skipping package installation"
+    log "apt-get not found; skipping apt installation"
 fi
+
+# ---------------------------------------------------------------------------
+# Homebrew (linuxbrew) for up-to-date neovim / fzf / ripgrep
+# (Apt versions on Debian/Ubuntu lag well behind upstream.)
+# ---------------------------------------------------------------------------
+BREW_PREFIX="/home/linuxbrew/.linuxbrew"
+if [ ! -x "$BREW_PREFIX/bin/brew" ]; then
+    log "Installing Homebrew (linuxbrew)"
+    NONINTERACTIVE=1 /bin/bash -c \
+        "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+eval "$("$BREW_PREFIX/bin/brew" shellenv)"
+
+log "Installing brew packages"
+brew install neovim fzf ripgrep
 
 # ---------------------------------------------------------------------------
 # Symlink dotfiles
